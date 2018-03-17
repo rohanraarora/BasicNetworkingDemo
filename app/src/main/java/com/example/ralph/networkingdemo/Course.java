@@ -1,5 +1,8 @@
 package com.example.ralph.networkingdemo;
 
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by ralph on 11/03/18.
  */
@@ -8,13 +11,14 @@ public class Course {
 
     private int id;
     private String title;
-    private String name;
+    @SerializedName("name")
+    private String courseName;
     private String overview;
 
-    public Course(int id, String title, String name, String overview) {
+    public Course(int id, String title, String courseName, String overview) {
         this.id = id;
         this.title = title;
-        this.name = name;
+        this.courseName = courseName;
         this.overview = overview;
     }
 
@@ -34,12 +38,12 @@ public class Course {
         this.title = title;
     }
 
-    public String getName() {
-        return name;
+    public String getCourseName() {
+        return courseName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
     }
 
     public String getOverview() {
@@ -48,5 +52,11 @@ public class Course {
 
     public void setOverview(String overview) {
         this.overview = overview;
+    }
+
+    public String toJson(){
+        Gson gson = new Gson();
+        return gson.toJson(this);
+
     }
 }

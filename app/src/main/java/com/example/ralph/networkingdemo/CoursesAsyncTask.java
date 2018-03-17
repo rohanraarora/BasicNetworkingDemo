@@ -3,6 +3,8 @@ package com.example.ralph.networkingdemo;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -73,20 +75,27 @@ public class CoursesAsyncTask extends AsyncTask<String,Void,ArrayList<Course>> {
     }
 
     private ArrayList<Course> parseCourses(String result) throws JSONException {
-        ArrayList<Course> courses = new ArrayList<>();
-        JSONObject rootObject = new JSONObject(result);
-        JSONObject data = rootObject.getJSONObject("data");
-        JSONArray coursesJSONArray = data.getJSONArray("courses");
-        for(int i = 0;i<coursesJSONArray.length();i++){
-            JSONObject courseObject = coursesJSONArray.getJSONObject(i);
-            int id = courseObject.getInt("id");
-            String title = courseObject.getString("title");
-            String name = courseObject.getString("name");
-            String overview = courseObject.getString("overview");
-            Course course = new Course(id,title,name,overview);
-            courses.add(course);
-        }
-        return courses;
+
+        Gson gson = new Gson();
+        CourseResponse courseResponse = gson.fromJson(result,CourseResponse.class);
+        return courseResponse.data.courses;
+//        ArrayList<Course> courses = new ArrayList<>();
+//        JSONObject rootObject = new JSONObject(result);
+//        JSONObject data = rootObject.getJSONObject("data");
+//        JSONArray coursesJSONArray = data.getJSONArray("courses");
+//
+//        for(int i = 0;i<coursesJSONArray.length();i++){
+//            JSONObject courseObject = coursesJSONArray.getJSONObject(i);
+//
+//            Course course = gson.fromJson(courseObject.toString(),Course.class);
+////            int id = courseObject.getInt("id");
+////            String title = courseObject.getString("title");
+////            String name = courseObject.getString("name");
+////            String overview = courseObject.getString("overview");
+////            Course course = new Course(id,title,name,overview);
+//            courses.add(course);
+//        }
+//        return courses;
 
     }
 

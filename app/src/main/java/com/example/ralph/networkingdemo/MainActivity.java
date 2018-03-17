@@ -9,18 +9,18 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-import javax.net.ssl.HttpsURLConnection;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar progressBar;
     ArrayAdapter<String> adapter;
     ArrayList<String> courseNames = new ArrayList<>();
+    ArrayList<Course> courseList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +41,14 @@ public class MainActivity extends AppCompatActivity {
 
         adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,courseNames);
         listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Course course = courseList.get(position);
+                Log.d("Json Response",course.toJson());
+            }
+        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -54,25 +63,59 @@ public class MainActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
         listView.setVisibility(View.GONE);
-        String urlString = "https://codingninjas.in/api/v2/courses.json";
-        CoursesAsyncTask asyncTask = new CoursesAsyncTask(new CoursesAsyncTask.CoursesDownloadListener() {
+//        String urlString = "https://codingninjas.in/api/v2/courses.json";
+//        CoursesAsyncTask asyncTask = new CoursesAsyncTask(new CoursesAsyncTask.CoursesDownloadListener() {
+//            @Override
+//            public void onDownloadComplete(ArrayList<Course> courses) {
+//                if(courses!= null){
+//                    courseList = courses;
+//                    for(int i = 0;i<courses.size();i++){
+//                        Course course = courses.get(i);
+//                        courseNames.add(course.getCourseName());
+//                    }
+//                    adapter.notifyDataSetChanged();
+//                }
+//                else {
+//                    Snackbar.make(listView,"Try Again.",Snackbar.LENGTH_LONG).show();
+//                }
+//                progressBar.setVisibility(View.GONE);
+//                listView.setVisibility(View.VISIBLE);
+//            }
+//        });
+//        asyncTask.execute(urlString);
+
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://codingninjas.in/api/v2/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        CoursesApi coursesApi = retrofit.create(CoursesApi.class);
+
+        Call<CourseResponse> call = coursesApi.getCourseResponse();
+
+        call.enqueue(new Callback<CourseResponse>() {
             @Override
-            public void onDownloadComplete(ArrayList<Course> courses) {
+            public void onResponse(Call<CourseResponse> call, Response<CourseResponse> response) {
+                CourseResponse courseResponse = response.body();
+                ArrayList<Course> courses = courseResponse.data.courses;
                 if(courses!= null){
+                    courseList = courses;
                     for(int i = 0;i<courses.size();i++){
                         Course course = courses.get(i);
-                        courseNames.add(course.getName());
+                        courseNames.add(course.getCourseName());
                     }
                     adapter.notifyDataSetChanged();
-                }
-                else {
-                    Snackbar.make(listView,"Try Again.",Snackbar.LENGTH_LONG).show();
                 }
                 progressBar.setVisibility(View.GONE);
                 listView.setVisibility(View.VISIBLE);
             }
+
+            @Override
+            public void onFailure(Call<CourseResponse> call, Throwable t) {
+                Log.d("Response Failed",t.getMessage());
+            }
         });
-        asyncTask.execute(urlString);
     }
 
     @Override
